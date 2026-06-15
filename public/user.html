@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Chat with Kyle | World Bank Support</title>
+    <title>Chat with Kyle | Support</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         body {
             background: #0a0a0a;
@@ -35,6 +35,262 @@
             text-align: center;
             border-bottom: 3px solid #b77bff;
         }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: #c084fc;
+        }
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 6px;
+            color: #bbbbbb;
+        }
+        .messages {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #0d0d0d;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .bubble {
+            max-width: 80%;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #2a1e3c;
+            color: #e2d6ff;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+        .admin {
+            background: #1e1e2a;
+            color: #dcd0ff;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border-left: 4px solid #b77bff;
+        }
+        .info {
+            background: #1a1025;
+            color: #c084fc;
+            align-self: center;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid #3a2a55;
+        }
+        .time {
+            font-size: 0.6rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+            color: #aaa;
+        }
+        .admin .time {
+            text-align: left;
+        }
+        .user img, .admin img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 16px;
+            margin-top: 5px;
+            border: 1px solid #444;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            background: #0a0a0a;
+            border-top: 1px solid #2a2a2a;
+            align-items: center;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #3a2a55;
+            border-radius: 40px;
+            outline: none;
+            font-size: 0.9rem;
+            background: #1e1e1e;
+            color: #f0f0f0;
+        }
+        .input-area input:focus {
+            border-color: #b77bff;
+        }
+        .input-area button {
+            background: #2a1e3c;
+            border: none;
+            color: #dcd0ff;
+            padding: 0 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 44px;
+        }
+        .input-area button:hover {
+            background: #3c2a5a;
+        }
+        .image-btn {
+            background: #1f1a2e;
+            font-size: 1.3rem;
+            padding: 0 16px;
+        }
+        .footer {
+            background: #080808;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.7rem;
+            color: #9b87c7;
+            border-top: 1px solid #222;
+        }
+        @media (max-width: 550px) {
+            .bubble {
+                max-width: 90%;
+            }
+            .messages {
+                height: 400px;
+            }
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<div class="chat-card">
+    <div class="header">
+        <h1>🌑 Support Center</h1>
+        <p>You are chatting with <strong>Kyle (Admin)</strong> – private & secure</p>
+    </div>
+    <div class="messages" id="messagesDiv">
+        <div class="info">Connecting to Kyle...</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Write your message...">
+        <button id="imageBtn" class="image-btn">📷</button>
+        <button id="sendBtn">Send</button>
+    </div>
+    <div class="footer">
+        ✅ You can send text or images. Admin may clear conversation after transaction.
+    </div>
+</div>
+
+<script>
+    let userId = localStorage.getItem('chat_user_id');
+    if (!userId) {
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+        localStorage.setItem('chat_user_id', userId);
+    }
+    const socket = io({ query: { userId: userId } });
+    const messagesDiv = document.getElementById('messagesDiv');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const imageBtn = document.getElementById('imageBtn');
+
+    function formatTime(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function addMessage(content, isAdmin, timestamp, isImage, imageData) {
+        const div = document.createElement('div');
+        div.className = 'bubble ' + (isAdmin ? 'admin' : 'user');
+        let inner = '';
+        if (isImage && imageData) {
+            inner = '<img src="' + escapeHtml(imageData) + '" alt="image">';
+        } else {
+            inner = '<div>' + escapeHtml(content) + '</div>';
+        }
+        inner += '<div class="time">' + formatTime(timestamp) + '</div>';
+        div.innerHTML = inner;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function clearMessages() {
+        messagesDiv.innerHTML = '';
+        const clearedDiv = document.createElement('div');
+        clearedDiv.className = 'info';
+        clearedDiv.innerText = '🧾 Transaction completed. Conversation cleared.';
+        messagesDiv.appendChild(clearedDiv);
+    }
+
+    socket.on('conversation-history', function(history) {
+        messagesDiv.innerHTML = '';
+        if (history.length === 0) {
+            var info = document.createElement('div');
+            info.className = 'info';
+            info.innerText = '💬 Send a message to Kyle (Admin)';
+            messagesDiv.appendChild(info);
+        } else {
+            history.forEach(function(msg) {
+                addMessage(msg.content, msg.from === 'ADMIN', msg.timestamp, msg.isImage, msg.isImage ? msg.content : null);
+            });
+        }
+    });
+
+    socket.on('admin-message', function(msg) {
+        addMessage(msg.content, true, msg.timestamp, msg.isImage, msg.isImage ? msg.content : null);
+    });
+
+    socket.on('conversation-cleared', function() {
+        clearMessages();
+    });
+
+    socket.on('connect', function() {
+        var existing = document.querySelector('.info');
+        if (existing && existing.innerText.includes('Connecting')) existing.remove();
+    });
+
+    function sendText() {
+        var text = msgInput.value.trim();
+        if (!text) return;
+        addMessage(text, false, new Date().toISOString(), false, null);
+        socket.emit('send-message', { type: 'text', content: text });
+        msgInput.value = '';
+    }
+
+    function sendImage(file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var base64 = e.target.result;
+            addMessage('', false, new Date().toISOString(), true, base64);
+            socket.emit('send-message', { type: 'image', content: base64 });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    sendBtn.addEventListener('click', sendText);
+    msgInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendText();
+    });
+    imageBtn.addEventListener('click', function() {
+        var input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function(e) {
+            if (input.files[0]) sendImage(input.files[0]);
+        };
+        input.click();
+    });
+</script>
+</body>
+</html>        }
         .header h1 {
             font-size: 1.7rem;
             font-weight: 600;
