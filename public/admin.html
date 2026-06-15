@@ -146,11 +146,12 @@
             padding: 10px 16px;
             border-radius: 20px;
         }
-        .user-msg img, .admin-msg img {
+        .chat-image {
             max-width: 200px;
             border-radius: 12px;
             margin-top: 5px;
             border: 1px solid #555;
+            cursor: pointer;
         }
         .reply-area {
             background: #0f0f0f;
@@ -191,6 +192,35 @@
             margin-top: 4px;
             color: #aaa;
         }
+
+        /* Lightbox */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 16px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         @media (max-width: 700px) {
             .users-sidebar {
                 width: 220px;
@@ -224,6 +254,12 @@
     </div>
 </div>
 
+<!-- Lightbox Modal -->
+<div id="imageModal" class="modal">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="modalImage">
+</div>
+
 <script>
     const socket = io({ query: { admin: 'true' } });
     let currentUserId = null;
@@ -234,6 +270,17 @@
     const replyBtn = document.getElementById('replyBtn');
     const transactionBtn = document.getElementById('transactionBtn');
     const selectedUserNameSpan = document.getElementById('selectedUserName');
+
+    // Modal functions
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const closeModal = document.getElementsByClassName('close-modal')[0];
+    function showImage(src) {
+        modal.style.display = 'flex';
+        modalImg.src = src;
+    }
+    closeModal.onclick = function() { modal.style.display = 'none'; }
+    window.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; }
 
     function escapeHtml(str) {
         if (!str) return '';
@@ -247,8 +294,9 @@
 
     socket.on('admin-users-list', function(users) {
         userListDiv.innerHTML = '';
+        usersMap.clear();
         if (users.length === 0) {
-            userListDiv.innerHTML = '<div style="padding:20px; color:#9b87c7;">✨ No messages yet. Share the user link.</div>';
+            userListDiv.innerHTML = '<div style="padding:20px; color:#9b87c7;">✨ No users yet. Share the user link.</div>';
             return;
         }
         users.forEach(function(u) {
@@ -279,7 +327,8 @@
             msgDiv.className = isAdmin ? 'admin-msg' : 'user-msg';
             var contentHtml = '';
             if (msg.isImage) {
-                contentHtml = '<img src="' + escapeHtml(msg.content) + '" alt="image">';
+                var imgSrc = escapeHtml(msg.content);
+                contentHtml = `<img src="${imgSrc}" class="chat-image" onclick="showImage('${imgSrc}')">`;
             } else {
                 contentHtml = '<div>' + escapeHtml(msg.content) + '</div>';
             }
@@ -291,19 +340,15 @@
     });
 
     socket.on('new-user-message', function(data) {
-        var userItem = document.querySelector('.user-item[data-id="' + data.userId + '"]');
-        if (userItem) {
-            var badge = userItem.querySelector('.badge');
-            var cnt = parseInt(badge.innerText) || 0;
-            badge.innerText = (cnt + 1) + ' msg';
-        }
+        // Refresh the whole user list to get updated counts and possibly new user
+        socket.emit('admin-request-refresh'); // we need to implement this in server.js
         if (currentUserId === data.userId) {
             var isAdminMsg = (data.message.from === 'ADMIN');
             var msgDiv = document.createElement('div');
             msgDiv.className = isAdminMsg ? 'admin-msg' : 'user-msg';
             var inner = '';
             if (data.message.isImage) {
-                inner = '<img src="' + escapeHtml(data.message.content) + '">';
+                inner = `<img src="${escapeHtml(data.message.content)}" class="chat-image" onclick="showImage('${escapeHtml(data.message.content)}')">`;
             } else {
                 inner = '<div>' + escapeHtml(data.message.content) + '</div>';
             }
@@ -320,13 +365,17 @@
     });
 
     socket.on('transaction-confirmed', function(data) {
-        if (data.userId === currentUserId) {
-            chatMessagesDiv.innerHTML = '<div class="empty-chat">🧾 Transaction done – conversation cleared.</div>';
-            var userItem = document.querySelector('.user-item[data-id="' + data.userId + '"]');
-            if (userItem) {
-                var badge = userItem.querySelector('.badge');
-                badge.innerText = '0 msg';
-            }
+        // Remove the user from sidebar and clear current chat if it was the active one
+        var userElem = document.querySelector('.user-item[data-id="' + data.userId + '"]');
+        if (userElem) userElem.remove();
+        usersMap.delete(data.userId);
+        if (currentUserId === data.userId) {
+            currentUserId = null;
+            chatMessagesDiv.innerHTML = '<div class="empty-chat">User removed. Select another user.</div>';
+            selectedUserNameSpan.innerText = 'Select a user';
+            transactionBtn.style.display = 'none';
+            replyInput.disabled = true;
+            replyBtn.disabled = true;
         }
     });
 
@@ -354,7 +403,7 @@
 
     function transactionDone() {
         if (!currentUserId) return;
-        if (confirm('⚠️ This will DELETE the ENTIRE conversation with this user. Are you sure?')) {
+        if (confirm('⚠️ This will DELETE the ENTIRE conversation AND REMOVE THIS USER from your list. Are you sure?')) {
             socket.emit('transaction-done', { userId: currentUserId });
         }
     }
