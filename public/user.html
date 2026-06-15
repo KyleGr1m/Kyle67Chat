@@ -46,6 +46,16 @@
             margin-top: 6px;
             color: #bbbbbb;
         }
+        .user-id-badge {
+            background: #1a1025;
+            margin-top: 10px;
+            padding: 6px 12px;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.7rem;
+            color: #c084fc;
+            border: 1px solid #3a2a55;
+        }
         .messages {
             height: 450px;
             overflow-y: auto;
@@ -95,12 +105,17 @@
         .admin .time {
             text-align: left;
         }
-        .user img, .admin img {
+        .chat-image {
             max-width: 200px;
             max-height: 150px;
-            border-radius: 16px;
+            border-radius: 12px;
             margin-top: 5px;
             border: 1px solid #444;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .chat-image:hover {
+            transform: scale(1.02);
         }
         .input-area {
             display: flex;
@@ -149,13 +164,38 @@
             color: #9b87c7;
             border-top: 1px solid #222;
         }
+
+        /* Lightbox modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 16px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         @media (max-width: 550px) {
-            .bubble {
-                max-width: 90%;
-            }
-            .messages {
-                height: 400px;
-            }
+            .bubble { max-width: 90%; }
+            .messages { height: 400px; }
         }
     </style>
     <script src="/socket.io/socket.io.js"></script>
@@ -164,7 +204,8 @@
 <div class="chat-card">
     <div class="header">
         <h1>🌑 Support Center</h1>
-        <p>You are chatting with <strong>Kyle (Admin)</strong> – private & secure</p>
+        <p>You are chatting with <strong>Kyle (Admin)</strong></p>
+        <div class="user-id-badge" id="userIdDisplay">Loading...</div>
     </div>
     <div class="messages" id="messagesDiv">
         <div class="info">Connecting to Kyle...</div>
@@ -175,8 +216,14 @@
         <button id="sendBtn">Send</button>
     </div>
     <div class="footer">
-        ✅ You can send text or images. Admin may clear conversation after transaction.
+        ✅ Text & images allowed. Click any image to enlarge.
     </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="imageModal" class="modal">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="modalImage">
 </div>
 
 <script>
@@ -185,11 +232,24 @@
         userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
         localStorage.setItem('chat_user_id', userId);
     }
+    document.getElementById('userIdDisplay').innerText = 'Your ID: ' + userId;
+
     const socket = io({ query: { userId: userId } });
     const messagesDiv = document.getElementById('messagesDiv');
     const msgInput = document.getElementById('msgInput');
     const sendBtn = document.getElementById('sendBtn');
     const imageBtn = document.getElementById('imageBtn');
+
+    // Modal functions
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const closeModal = document.getElementsByClassName('close-modal')[0];
+    function showImage(src) {
+        modal.style.display = 'flex';
+        modalImg.src = src;
+    }
+    closeModal.onclick = function() { modal.style.display = 'none'; }
+    window.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; }
 
     function formatTime(iso) {
         if (!iso) return '';
@@ -212,7 +272,7 @@
         div.className = 'bubble ' + (isAdmin ? 'admin' : 'user');
         let inner = '';
         if (isImage && imageData) {
-            inner = '<img src="' + escapeHtml(imageData) + '" alt="image">';
+            inner = `<img src="${escapeHtml(imageData)}" alt="image" class="chat-image" onclick="showImage('${escapeHtml(imageData)}')">`;
         } else {
             inner = '<div>' + escapeHtml(content) + '</div>';
         }
@@ -226,7 +286,7 @@
         messagesDiv.innerHTML = '';
         const clearedDiv = document.createElement('div');
         clearedDiv.className = 'info';
-        clearedDiv.innerText = '🧾 Transaction completed. Conversation cleared.';
+        clearedDiv.innerText = '🧾 Transaction completed. Conversation cleared. You can start a new conversation.';
         messagesDiv.appendChild(clearedDiv);
     }
 
@@ -235,7 +295,7 @@
         if (history.length === 0) {
             var info = document.createElement('div');
             info.className = 'info';
-            info.innerText = '💬 Send a message to Kyle (Admin)';
+            info.innerText = '💬 Send your first message to Kyle (Admin). After that, you will see your ID.';
             messagesDiv.appendChild(info);
         } else {
             history.forEach(function(msg) {
@@ -250,6 +310,7 @@
 
     socket.on('conversation-cleared', function() {
         clearMessages();
+        // Optional: reset local storage ID to force new user? Not needed, but user can continue.
     });
 
     socket.on('connect', function() {
