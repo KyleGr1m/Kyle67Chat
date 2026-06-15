@@ -19,7 +19,6 @@ app.use(session({
     saveUninitialized: false
 }));
 
-// ---------- DATABASE ----------
 let db;
 async function setupDatabase() {
     db = await open({
@@ -49,7 +48,6 @@ setupDatabase();
 
 const onlineUsers = new Map();
 
-// ---------- HELPER FUNCTIONS ----------
 async function saveMessage(userId, content, fromRole, toRole, isImage = false) {
     await db.run(
         'INSERT INTO messages (user_id, content, is_image, from_role, to_role) VALUES (?, ?, ?, ?, ?)',
@@ -89,11 +87,11 @@ async function registerUser(userId, name) {
     await db.run('INSERT OR IGNORE INTO users (user_id, name) VALUES (?, ?)', [userId, name]);
 }
 
-async function deleteUserConversation(userId) {
+async function deleteUserCompletely(userId) {
     await db.run('DELETE FROM messages WHERE user_id = ?', [userId]);
+    await db.run('DELETE FROM users WHERE user_id = ?', [userId]);
 }
 
-// ---------- SOCKET.IO ----------
 io.on('connection', async (socket) => {
     const userId = socket.handshake.query.userId;
     const isAdmin = socket.handshake.query.admin === 'true';
@@ -102,8 +100,15 @@ io.on('connection', async (socket) => {
         socket.join('admin-room');
         console.log('🛡️ Admin connected');
 
-        const userList = await getAllUsersWithMessageCount();
-        socket.emit('admin-users-list', userList);
+        const sendUserList = async () => {
+            const userList = await getAllUsersWithMessageCount();
+            socket.emit('admin-users-list', userList);
+        };
+        await sendUserList();
+
+        socket.on('admin-request-refresh', async () => {
+            await sendUserList();
+        });
 
         socket.on('get-user-messages', async (targetUserId) => {
             const msgs = await getUserMessages(targetUserId);
@@ -122,18 +127,22 @@ io.on('connection', async (socket) => {
                 io.to(toUserId).emit('admin-message', replyMsg);
             }
             socket.emit('reply-confirm', { success: true });
+            // Refresh user list for admin to update badge counts
+            await sendUserList();
         });
 
-        socket.on('transaction-done', async ({ userId }) => {
-            await deleteUserConversation(userId);
-            // Notify the user if online to clear their chat
-            if (onlineUsers.has(userId)) {
-                io.to(userId).emit('conversation-cleared');
+        socket.on('transaction-done', async ({ userId: targetUserId }) => {
+            await deleteUserCompletely(targetUserId);
+            // Notify the user if online to clear their conversation and reset their view
+            if (onlineUsers.has(targetUserId)) {
+                io.to(targetUserId).emit('conversation-cleared');
+                // Optionally force the user to reload or show message; they can still send new messages which will create a fresh entry.
             }
-            // Also refresh the user list for admin
+            // Notify admin that transaction is done and refresh the list
+            io.to('admin-room').emit('transaction-confirmed', { userId: targetUserId });
+            // Also send updated user list to all admins
             const updatedList = await getAllUsersWithMessageCount();
             io.to('admin-room').emit('admin-users-list', updatedList);
-            socket.emit('transaction-confirmed', { userId });
         });
     }
     else {
@@ -167,11 +176,12 @@ io.on('connection', async (socket) => {
 
         socket.on('disconnect', () => {
             onlineUsers.delete(userId);
+            console.log(`🔌 User disconnected: ${userId}`);
         });
     }
 });
 
-// ---------- ADMIN LOGIN ROUTES ----------
+// Admin login routes
 const ADMIN_USER = 'AdminK';
 const ADMIN_PASS = '272504d3kings';
 
@@ -203,7 +213,6 @@ app.get('/admin', requireAdmin, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// Public routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'user.html'));
 });
