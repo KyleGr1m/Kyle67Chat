@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chat with Kyle | World Bank Support</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: linear-gradient(145deg, #e9f0f5 0%, #d4e0ea 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            /* World Bank inspired subtle background pattern */
+            background-image: radial-gradient(circle at 10% 20%, rgba(0,50,80,0.03) 2%, transparent 2.5%);
+            background-size: 28px 28px;
+        }
+        .chat-card {
+            max-width: 600px;
+            width: 100%;
+            background: rgba(255,255,255,0.96);
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+        }
+        .header {
+            background: #0b2b3b;
+            color: white;
+            padding: 22px 24px;
+            text-align: center;
+            border-bottom: 3px solid #ffb347;
+        }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 6px;
+        }
+        .messages {
+            height: 450px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #fefef9;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .bubble {
+            max-width: 80%;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user {
+            background: #0b2b3b;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 6px;
+        }
+        .admin {
+            background: #e9ecef;
+            color: #1a2c3e;
+            align-self: flex-start;
+            border-bottom-left-radius: 6px;
+            border-left: 4px solid #ffb347;
+        }
+        .info {
+            background: #fff8e7;
+            color: #b45f06;
+            align-self: center;
+            font-size: 0.75rem;
+            padding: 6px 14px;
+            border-radius: 30px;
+        }
+        .time {
+            font-size: 0.6rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            text-align: right;
+        }
+        .admin .time { text-align: left; }
+        .user img, .admin img {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 16px;
+            margin-top: 5px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            padding: 16px 20px;
+            background: white;
+            border-top: 1px solid #e2edf2;
+            align-items: center;
+        }
+        .input-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1.5px solid #cbdbe2;
+            border-radius: 40px;
+            outline: none;
+            font-size: 0.9rem;
+        }
+        .input-area input:focus { border-color: #0b2b3b; }
+        .input-area button {
+            background: #0b2b3b;
+            border: none;
+            color: white;
+            padding: 0 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 44px;
+        }
+        .image-btn {
+            background: #5a6e7c;
+            font-size: 1.3rem;
+            padding: 0 16px;
+        }
+        .footer {
+            background: #f5f8fa;
+            text-align: center;
+            padding: 10px;
+            font-size: 0.7rem;
+            color: #4a6272;
+        }
+        @media (max-width: 550px) {
+            .bubble { max-width: 90%; }
+            .messages { height: 400px; }
+        }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<div class="chat-card">
+    <div class="header">
+        <h1>🌍 World Bank Support</h1>
+        <p>You are chatting with <strong>Kyle (Admin)</strong> – private & secure</p>
+    </div>
+    <div class="messages" id="messagesDiv">
+        <div class="info">Connecting to Kyle...</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Write your message...">
+        <button id="imageBtn" class="image-btn">📷</button>
+        <button id="sendBtn">Send</button>
+    </div>
+    <div class="footer">
+        ✅ You can send text or images. Admin may clear conversation after transaction.
+    </div>
+</div>
+
+<script>
+    let userId = localStorage.getItem('chat_user_id');
+    if (!userId) {
+        userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+        localStorage.setItem('chat_user_id', userId);
+    }
+    const socket = io({ query: { userId: userId } });
+    const messagesDiv = document.getElementById('messagesDiv');
+    const msgInput = document.getElementById('msgInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const imageBtn = document.getElementById('imageBtn');
+
+    function formatTime(iso) {
+        if (!iso) return '';
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    function addMessage(content, isAdmin, timestamp, isImage = false, imageData = null) {
+        const div = document.createElement('div');
+        div.className = 'bubble ' + (isAdmin ? 'admin' : 'user');
+        let inner = '';
+        if (isImage && imageData) {
+            inner = `<img src="${imageData}" alt="image">`;
+        } else {
+            inner = `<div>${escapeHtml(content)}</div>`;
+        }
+        inner += `<div class="time">${formatTime(timestamp)}</div>`;
+        div.innerHTML = inner;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    function clearMessages() {
+        messagesDiv.innerHTML = '';
+        const clearedDiv = document.createElement('div');
+        clearedDiv.className = 'info';
+        clearedDiv.innerText = '🧾 Transaction completed. Conversation cleared.';
+        messagesDiv.appendChild(clearedDiv);
+    }
+
+    socket.on('conversation-history', (history) => {
+        messagesDiv.innerHTML = '';
+        if (history.length === 0) {
+            const info = document.createElement('div');
+            info.className = 'info';
+            info.innerText = '💬 Send a message to Kyle (Admin)';
+            messagesDiv.appendChild(info);
+        } else {
+            history.forEach(msg => {
+                addMessage(msg.content, msg.from === 'ADMIN', msg.timestamp, msg.isImage, msg.isImage ? msg.content : null);
+            });
+        }
+    });
+
+    socket.on('admin-message', (msg) => {
+        addMessage(msg.content, true, msg.timestamp, msg.isImage, msg.isImage ? msg.content : null);
+    });
+
+    socket.on('conversation-cleared', () => {
+        clearMessages();
+    });
+
+    socket.on('connect', () => {
+        const existingInfo = document.querySelector('.info');
+        if (existingInfo && existingInfo.innerText.includes('Connecting')) existingInfo.remove();
+    });
+
+    function sendText() {
+        const text = msgInput.value.trim();
+        if (!text) return;
+        addMessage(text, false, new Date().toISOString());
+        socket.emit('send-message', { type: 'text', content: text });
+        msgInput.value = '';
+    }
+
+    function sendImage(file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result;
+            addMessage('', false, new Date().toISOString(), true, base64);
+            socket.emit('send-message', { type: 'image', content: base64 });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    sendBtn.addEventListener('click', sendText);
+    msgInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendText(); });
+    imageBtn.addEventListener('click', () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (e) => { if (input.files[0]) sendImage(input.files[0]); };
+        input.click();
+    });
+</script>
+</body>
+</html>
