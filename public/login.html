@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login</title>
+    <title>Admin Login – Dark</title>
     <style>
         body {
-            background: linear-gradient(145deg, #d9e4ec, #cbdbe2);
+            background: #0a0a0a;
             font-family: system-ui, sans-serif;
             display: flex;
             justify-content: center;
@@ -15,26 +15,64 @@
             margin: 0;
         }
         .login-box {
-            background: white;
+            background: #111111;
             padding: 40px;
             border-radius: 48px;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 35px rgba(0,0,0,0.5);
             width: 320px;
             text-align: center;
+            border: 1px solid #2a2a2a;
+        }
+        .login-box h2 {
+            color: #c084fc;
+            margin-bottom: 20px;
         }
         input {
             width: 100%;
             padding: 12px;
             margin: 10px 0;
-            border: 1px solid #ccc;
+            border: 1px solid #3a2a55;
             border-radius: 60px;
+            background: #1e1e1e;
+            color: #f0f0f0;
+            outline: none;
+        }
+        input:focus {
+            border-color: #b77bff;
         }
         button {
-            background: #0b2b3b;
-            color: white;
+            background: #2a1e3c;
+            color: #dcd0ff;
             border: none;
             padding: 12px;
             width: 100%;
+            border-radius: 60px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #3c2a5a;
+        }
+        .note {
+            margin-top: 20px;
+            font-size: 0.7rem;
+            color: #9b87c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>👑 Admin Access</h2>
+        <form method="POST" action="/admin/login">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="note">🔒 Secure area – Kyle only</div>
+    </div>
+</body>
+</html>            width: 100%;
             border-radius: 60px;
             font-weight: bold;
             margin-top: 10px;
