@@ -3,10 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel – Kyle | Dark Edition</title>
+    <title>Admin Panel – Kyle</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-        body { background: #0a0a0a; height: 100vh; display: flex; flex-direction: column; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0a0a0a;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
         .admin-header {
             background: #0b0b0b;
             color: #e0e0e0;
@@ -16,9 +26,24 @@
             align-items: center;
             border-bottom: 1px solid #2a2a2a;
         }
-        .admin-header h2 { font-size: 1.4rem; color: #c084fc; }
-        .logout-btn { background: #2a1e3c; padding: 6px 16px; border-radius: 30px; color: #dcd0ff; text-decoration: none; font-weight: bold; border: 1px solid #3a2a55; }
-        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .admin-header h2 {
+            font-size: 1.4rem;
+            color: #c084fc;
+        }
+        .logout-btn {
+            background: #2a1e3c;
+            padding: 6px 16px;
+            border-radius: 30px;
+            color: #dcd0ff;
+            text-decoration: none;
+            font-weight: bold;
+            border: 1px solid #3a2a55;
+        }
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
         .users-sidebar {
             width: 280px;
             background: #0f0f0f;
@@ -26,8 +51,18 @@
             display: flex;
             flex-direction: column;
         }
-        .sidebar-header { padding: 20px; background: #111111; border-bottom: 1px solid #2a2a2a; color: #c084fc; font-weight: bold; }
-        .user-list { flex: 1; overflow-y: auto; padding: 10px 0; }
+        .sidebar-header {
+            padding: 20px;
+            background: #111111;
+            border-bottom: 1px solid #2a2a2a;
+            color: #c084fc;
+            font-weight: bold;
+        }
+        .user-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
         .user-item {
             padding: 14px 20px;
             cursor: pointer;
@@ -35,11 +70,33 @@
             border-left: 4px solid transparent;
             color: #dddddd;
         }
-        .user-item:hover { background: #1c1c2a; }
-        .user-item.active { background: #1a1025; border-left-color: #b77bff; }
-        .user-name { font-weight: 600; color: #e2d6ff; }
-        .badge { background: #2a1e3c; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; display: inline-block; margin-top: 5px; color: #c084fc; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: #0d0d0d; }
+        .user-item:hover {
+            background: #1c1c2a;
+        }
+        .user-item.active {
+            background: #1a1025;
+            border-left-color: #b77bff;
+        }
+        .user-name {
+            font-weight: 600;
+            color: #e2d6ff;
+        }
+        .badge {
+            background: #2a1e3c;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 5px;
+            color: #c084fc;
+        }
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0d0d0d;
+        }
         .chat-header {
             background: #111111;
             padding: 16px 24px;
@@ -48,7 +105,9 @@
             justify-content: space-between;
             align-items: center;
         }
-        .chat-header h3 { color: #c084fc; }
+        .chat-header h3 {
+            color: #c084fc;
+        }
         .transaction-btn {
             background: #3a1a2a;
             color: #ffb3c6;
@@ -58,19 +117,85 @@
             font-weight: bold;
             cursor: pointer;
         }
-        .transaction-btn:hover { background: #5c2a3a; }
-        .messages-panel { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; background: #0a0a0a; }
-        .admin-msg, .user-msg { max-width: 75%; padding: 10px 16px; border-radius: 20px; }
-        .user-msg { background: #1a1025; align-self: flex-start; border-left: 3px solid #b77bff; color: #e2d6ff; }
-        .admin-msg { background: #2a1e3c; color: #dcd0ff; align-self: flex-end; }
-        .user-msg img, .admin-msg img { max-width: 200px; border-radius: 12px; margin-top: 5px; border: 1px solid #555; }
-        .reply-area { background: #0f0f0f; padding: 20px; border-top: 1px solid #2a2a2a; display: flex; gap: 12px; }
-        .reply-area input { flex: 1; padding: 12px 18px; border: 1px solid #3a2a55; border-radius: 40px; background: #1a1a1a; color: #f0f0f0; outline: none; }
-        .reply-area input:focus { border-color: #b77bff; }
-        .reply-area button { background: #2a1e3c; color: #dcd0ff; border: none; padding: 0 28px; border-radius: 40px; cursor: pointer; font-weight: bold; }
-        .empty-chat { text-align: center; color: #9b87c7; margin-top: 40px; }
-        .time-stamp { font-size: 0.6rem; opacity: 0.7; margin-top: 4px; color: #aaa; }
-        @media (max-width: 700px) { .users-sidebar { width: 220px; } }
+        .transaction-btn:hover {
+            background: #5c2a3a;
+        }
+        .messages-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #0a0a0a;
+        }
+        .user-msg {
+            background: #1a1025;
+            align-self: flex-start;
+            border-left: 3px solid #b77bff;
+            color: #e2d6ff;
+            max-width: 75%;
+            padding: 10px 16px;
+            border-radius: 20px;
+        }
+        .admin-msg {
+            background: #2a1e3c;
+            color: #dcd0ff;
+            align-self: flex-end;
+            max-width: 75%;
+            padding: 10px 16px;
+            border-radius: 20px;
+        }
+        .user-msg img, .admin-msg img {
+            max-width: 200px;
+            border-radius: 12px;
+            margin-top: 5px;
+            border: 1px solid #555;
+        }
+        .reply-area {
+            background: #0f0f0f;
+            padding: 20px;
+            border-top: 1px solid #2a2a2a;
+            display: flex;
+            gap: 12px;
+        }
+        .reply-area input {
+            flex: 1;
+            padding: 12px 18px;
+            border: 1px solid #3a2a55;
+            border-radius: 40px;
+            background: #1a1a1a;
+            color: #f0f0f0;
+            outline: none;
+        }
+        .reply-area input:focus {
+            border-color: #b77bff;
+        }
+        .reply-area button {
+            background: #2a1e3c;
+            color: #dcd0ff;
+            border: none;
+            padding: 0 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .empty-chat {
+            text-align: center;
+            color: #9b87c7;
+            margin-top: 40px;
+        }
+        .time-stamp {
+            font-size: 0.6rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            color: #aaa;
+        }
+        @media (max-width: 700px) {
+            .users-sidebar {
+                width: 220px;
+            }
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
 </head>
@@ -110,20 +235,30 @@
     const transactionBtn = document.getElementById('transactionBtn');
     const selectedUserNameSpan = document.getElementById('selectedUserName');
 
-    socket.on('admin-users-list', (users) => {
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    socket.on('admin-users-list', function(users) {
         userListDiv.innerHTML = '';
         if (users.length === 0) {
             userListDiv.innerHTML = '<div style="padding:20px; color:#9b87c7;">✨ No messages yet. Share the user link.</div>';
             return;
         }
-        users.forEach(u => {
+        users.forEach(function(u) {
             usersMap.set(u.userId, { name: u.name, count: u.messageCount });
-            const div = document.createElement('div');
+            var div = document.createElement('div');
             div.className = 'user-item';
             div.setAttribute('data-id', u.userId);
-            div.innerHTML = `<div class="user-name">🧑 ${escapeHtml(u.name)}</div><div><span class="badge">${u.messageCount} msg</span></div>`;
-            div.addEventListener('click', () => {
-                document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
+            div.innerHTML = '<div class="user-name">🧑 ' + escapeHtml(u.name) + '</div><div><span class="badge">' + u.messageCount + ' msg</span></div>';
+            div.addEventListener('click', function() {
+                document.querySelectorAll('.user-item').forEach(function(el) { el.classList.remove('active'); });
                 div.classList.add('active');
                 loadUserMessages(u.userId);
             });
@@ -131,62 +266,65 @@
         });
     });
 
-    socket.on('user-messages-history', ({ userId, messages }) => {
-        if (userId !== currentUserId) return;
+    socket.on('user-messages-history', function(data) {
+        if (data.userId !== currentUserId) return;
         chatMessagesDiv.innerHTML = '';
-        if (!messages.length) {
+        if (!data.messages.length) {
             chatMessagesDiv.innerHTML = '<div class="empty-chat">📭 No messages yet. Wait for user.</div>';
             return;
         }
-        messages.forEach(msg => {
-            const isAdmin = msg.from === 'ADMIN';
-            const msgDiv = document.createElement('div');
+        data.messages.forEach(function(msg) {
+            var isAdmin = (msg.from === 'ADMIN');
+            var msgDiv = document.createElement('div');
             msgDiv.className = isAdmin ? 'admin-msg' : 'user-msg';
-            let contentHtml = '';
+            var contentHtml = '';
             if (msg.isImage) {
-                contentHtml = `<img src="${escapeHtml(msg.content)}" alt="image">`;
+                contentHtml = '<img src="' + escapeHtml(msg.content) + '" alt="image">';
             } else {
-                contentHtml = `<div>${escapeHtml(msg.content)}</div>`;
+                contentHtml = '<div>' + escapeHtml(msg.content) + '</div>';
             }
-            contentHtml += `<div class="time-stamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>`;
+            contentHtml += '<div class="time-stamp">' + new Date(msg.timestamp).toLocaleTimeString() + '</div>';
             msgDiv.innerHTML = contentHtml;
             chatMessagesDiv.appendChild(msgDiv);
         });
         chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
     });
 
-    socket.on('new-user-message', (data) => {
-        const userItem = document.querySelector(`.user-item[data-id="${data.userId}"]`);
+    socket.on('new-user-message', function(data) {
+        var userItem = document.querySelector('.user-item[data-id="' + data.userId + '"]');
         if (userItem) {
-            const badge = userItem.querySelector('.badge');
-            let cnt = parseInt(badge.innerText) || 0;
+            var badge = userItem.querySelector('.badge');
+            var cnt = parseInt(badge.innerText) || 0;
             badge.innerText = (cnt + 1) + ' msg';
         }
         if (currentUserId === data.userId) {
-            const isAdminMsg = data.message.from === 'ADMIN';
-            const msgDiv = document.createElement('div');
+            var isAdminMsg = (data.message.from === 'ADMIN');
+            var msgDiv = document.createElement('div');
             msgDiv.className = isAdminMsg ? 'admin-msg' : 'user-msg';
-            let inner = '';
-            if (data.message.isImage) inner = `<img src="${escapeHtml(data.message.content)}">`;
-            else inner = `<div>${escapeHtml(data.message.content)}</div>`;
-            inner += `<div class="time-stamp">${new Date(data.message.timestamp).toLocaleTimeString()}</div>`;
+            var inner = '';
+            if (data.message.isImage) {
+                inner = '<img src="' + escapeHtml(data.message.content) + '">';
+            } else {
+                inner = '<div>' + escapeHtml(data.message.content) + '</div>';
+            }
+            inner += '<div class="time-stamp">' + new Date(data.message.timestamp).toLocaleTimeString() + '</div>';
             msgDiv.innerHTML = inner;
             chatMessagesDiv.appendChild(msgDiv);
             chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         }
     });
 
-    socket.on('reply-confirm', () => {
+    socket.on('reply-confirm', function() {
         replyInput.value = '';
         loadUserMessages(currentUserId);
     });
 
-    socket.on('transaction-confirmed', ({ userId }) => {
-        if (userId === currentUserId) {
+    socket.on('transaction-confirmed', function(data) {
+        if (data.userId === currentUserId) {
             chatMessagesDiv.innerHTML = '<div class="empty-chat">🧾 Transaction done – conversation cleared.</div>';
-            const userItem = document.querySelector(`.user-item[data-id="${userId}"]`);
+            var userItem = document.querySelector('.user-item[data-id="' + data.userId + '"]');
             if (userItem) {
-                const badge = userItem.querySelector('.badge');
+                var badge = userItem.querySelector('.badge');
                 badge.innerText = '0 msg';
             }
         }
@@ -194,8 +332,8 @@
 
     function loadUserMessages(userId) {
         currentUserId = userId;
-        const user = usersMap.get(userId) || { name: userId.slice(-8) };
-        selectedUserNameSpan.innerText = `💬 Chat with ${escapeHtml(user.name)}`;
+        var user = usersMap.get(userId) || { name: userId.slice(-8) };
+        selectedUserNameSpan.innerText = '💬 Chat with ' + escapeHtml(user.name);
         transactionBtn.style.display = 'inline-block';
         replyInput.disabled = false;
         replyBtn.disabled = false;
@@ -203,12 +341,12 @@
     }
 
     function sendReply() {
-        const text = replyInput.value.trim();
+        var text = replyInput.value.trim();
         if (!text || !currentUserId) return;
         socket.emit('admin-reply', { toUserId: currentUserId, message: text });
-        const optimistic = document.createElement('div');
+        var optimistic = document.createElement('div');
         optimistic.className = 'admin-msg';
-        optimistic.innerHTML = `<div>${escapeHtml(text)}</div><div class="time-stamp">Just now</div>`;
+        optimistic.innerHTML = '<div>' + escapeHtml(text) + '</div><div class="time-stamp">Just now</div>';
         chatMessagesDiv.appendChild(optimistic);
         chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         replyInput.value = '';
@@ -216,213 +354,16 @@
 
     function transactionDone() {
         if (!currentUserId) return;
-        if (confirm(`⚠️ This will DELETE the ENTIRE conversation with this user. Are you sure?`)) {
+        if (confirm('⚠️ This will DELETE the ENTIRE conversation with this user. Are you sure?')) {
             socket.emit('transaction-done', { userId: currentUserId });
         }
     }
 
     replyBtn.addEventListener('click', sendReply);
-    replyInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendReply(); });
+    replyInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendReply();
+    });
     transactionBtn.addEventListener('click', transactionDone);
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
-    }
-</script>
-</body>
-</html>        .user-item.active { background: #e6f0f5; border-left-color: #ffb347; }
-        .user-name { font-weight: 600; }
-        .badge { background: #ffb347; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; display: inline-block; margin-top: 5px; }
-        .chat-area { flex: 1; display: flex; flex-direction: column; background: #fefef9; }
-        .chat-header {
-            background: white;
-            padding: 16px 24px;
-            border-bottom: 1px solid #e2edf2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .transaction-btn {
-            background: #d9534f;
-            color: white;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 40px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .transaction-btn:hover { background: #c9302c; }
-        .messages-panel { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
-        .admin-msg, .user-msg { max-width: 75%; padding: 10px 16px; border-radius: 20px; }
-        .user-msg { background: white; align-self: flex-start; border-left: 3px solid #ffb347; }
-        .admin-msg { background: #0b2b3b; color: white; align-self: flex-end; }
-        .user-msg img, .admin-msg img { max-width: 200px; border-radius: 12px; margin-top: 5px; }
-        .reply-area { background: white; padding: 20px; border-top: 1px solid #e2edf2; display: flex; gap: 12px; }
-        .reply-area input { flex: 1; padding: 12px 18px; border: 1px solid #cbdbe2; border-radius: 40px; }
-        .reply-area button { background: #0b2b3b; color: white; border: none; padding: 0 28px; border-radius: 40px; cursor: pointer; }
-        .empty-chat { text-align: center; color: #6c7e8f; margin-top: 40px; }
-        .time-stamp { font-size: 0.6rem; opacity: 0.7; margin-top: 4px; }
-        @media (max-width: 700px) { .users-sidebar { width: 220px; } }
-    </style>
-    <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-<div class="admin-header">
-    <h2>👑 Admin Console – Kyle</h2>
-    <a href="/admin/logout" class="logout-btn">Logout</a>
-</div>
-<div class="main-container">
-    <div class="users-sidebar">
-        <div class="sidebar-header"><strong>🧑‍💻 People who messaged</strong></div>
-        <div class="user-list" id="userList">Loading users...</div>
-    </div>
-    <div class="chat-area">
-        <div class="chat-header">
-            <h3 id="selectedUserName">Select a user</h3>
-            <button id="transactionBtn" class="transaction-btn" style="display:none;">✔️ Transaction Done</button>
-        </div>
-        <div class="messages-panel" id="chatMessages">
-            <div class="empty-chat">No user selected</div>
-        </div>
-        <div class="reply-area">
-            <input type="text" id="replyInput" placeholder="Reply as Kyle..." disabled>
-            <button id="replyBtn" disabled>Send reply</button>
-        </div>
-    </div>
-</div>
-
-<script>
-    const socket = io({ query: { admin: 'true' } });
-    let currentUserId = null;
-    let usersMap = new Map();
-    const userListDiv = document.getElementById('userList');
-    const chatMessagesDiv = document.getElementById('chatMessages');
-    const replyInput = document.getElementById('replyInput');
-    const replyBtn = document.getElementById('replyBtn');
-    const transactionBtn = document.getElementById('transactionBtn');
-    const selectedUserNameSpan = document.getElementById('selectedUserName');
-
-    socket.on('admin-users-list', (users) => {
-        userListDiv.innerHTML = '';
-        if (users.length === 0) {
-            userListDiv.innerHTML = '<div style="padding:20px;">✨ No messages yet. Share the user link.</div>';
-            return;
-        }
-        users.forEach(u => {
-            usersMap.set(u.userId, { name: u.name, count: u.messageCount });
-            const div = document.createElement('div');
-            div.className = 'user-item';
-            div.setAttribute('data-id', u.userId);
-            div.innerHTML = `<div class="user-name">🧑 ${escapeHtml(u.name)}</div><div><span class="badge">${u.messageCount} msg</span></div>`;
-            div.addEventListener('click', () => {
-                document.querySelectorAll('.user-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                loadUserMessages(u.userId);
-            });
-            userListDiv.appendChild(div);
-        });
-    });
-
-    socket.on('user-messages-history', ({ userId, messages }) => {
-        if (userId !== currentUserId) return;
-        chatMessagesDiv.innerHTML = '';
-        if (!messages.length) {
-            chatMessagesDiv.innerHTML = '<div class="empty-chat">📭 No messages yet. Wait for user.</div>';
-            return;
-        }
-        messages.forEach(msg => {
-            const isAdmin = msg.from === 'ADMIN';
-            const msgDiv = document.createElement('div');
-            msgDiv.className = isAdmin ? 'admin-msg' : 'user-msg';
-            let contentHtml = '';
-            if (msg.isImage) {
-                contentHtml = `<img src="${escapeHtml(msg.content)}" alt="image">`;
-            } else {
-                contentHtml = `<div>${escapeHtml(msg.content)}</div>`;
-            }
-            contentHtml += `<div class="time-stamp">${new Date(msg.timestamp).toLocaleTimeString()}</div>`;
-            msgDiv.innerHTML = contentHtml;
-            chatMessagesDiv.appendChild(msgDiv);
-        });
-        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-    });
-
-    socket.on('new-user-message', (data) => {
-        const userItem = document.querySelector(`.user-item[data-id="${data.userId}"]`);
-        if (userItem) {
-            const badge = userItem.querySelector('.badge');
-            let cnt = parseInt(badge.innerText) || 0;
-            badge.innerText = (cnt + 1) + ' msg';
-        }
-        if (currentUserId === data.userId) {
-            const isAdminMsg = data.message.from === 'ADMIN';
-            const msgDiv = document.createElement('div');
-            msgDiv.className = isAdminMsg ? 'admin-msg' : 'user-msg';
-            let inner = '';
-            if (data.message.isImage) inner = `<img src="${escapeHtml(data.message.content)}">`;
-            else inner = `<div>${escapeHtml(data.message.content)}</div>`;
-            inner += `<div class="time-stamp">${new Date(data.message.timestamp).toLocaleTimeString()}</div>`;
-            msgDiv.innerHTML = inner;
-            chatMessagesDiv.appendChild(msgDiv);
-            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-        }
-    });
-
-    socket.on('reply-confirm', () => {
-        replyInput.value = '';
-        loadUserMessages(currentUserId);
-    });
-
-    socket.on('transaction-confirmed', ({ userId }) => {
-        if (userId === currentUserId) {
-            chatMessagesDiv.innerHTML = '<div class="empty-chat">🧾 Transaction done – conversation cleared.</div>';
-            // update user list badge to 0
-            const userItem = document.querySelector(`.user-item[data-id="${userId}"]`);
-            if (userItem) {
-                const badge = userItem.querySelector('.badge');
-                badge.innerText = '0 msg';
-            }
-        }
-    });
-
-    function loadUserMessages(userId) {
-        currentUserId = userId;
-        const user = usersMap.get(userId) || { name: userId.slice(-8) };
-        selectedUserNameSpan.innerText = `💬 Chat with ${escapeHtml(user.name)}`;
-        transactionBtn.style.display = 'inline-block';
-        replyInput.disabled = false;
-        replyBtn.disabled = false;
-        socket.emit('get-user-messages', userId);
-    }
-
-    function sendReply() {
-        const text = replyInput.value.trim();
-        if (!text || !currentUserId) return;
-        socket.emit('admin-reply', { toUserId: currentUserId, message: text });
-        const optimistic = document.createElement('div');
-        optimistic.className = 'admin-msg';
-        optimistic.innerHTML = `<div>${escapeHtml(text)}</div><div class="time-stamp">Just now</div>`;
-        chatMessagesDiv.appendChild(optimistic);
-        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-        replyInput.value = '';
-    }
-
-    function transactionDone() {
-        if (!currentUserId) return;
-        if (confirm(`⚠️ This will DELETE the ENTIRE conversation with this user. Are you sure?`)) {
-            socket.emit('transaction-done', { userId: currentUserId });
-        }
-    }
-
-    replyBtn.addEventListener('click', sendReply);
-    replyInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendReply(); });
-    transactionBtn.addEventListener('click', transactionDone);
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
-    }
 </script>
 </body>
 </html>
